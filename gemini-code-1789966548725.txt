@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTS Kewirausahaan XI - SMK Bina Karya Mandiri</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .no-select { user-select: none; -webkit-user-select: none; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased no-select">
+
+    <!-- HEADER / NAVBAR -->
+    <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-30 no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg md:text-xl font-bold tracking-wide">SMK BINA KARYA MANDIRI</h1>
+                <p class="text-xs text-indigo-200">Ujian Tengah Semester Ganjil - Kewirausahaan (KIK) Kelas XI</p>
+            </div>
+            <div id="timerDisplay" class="hidden bg-red-600 px-4 py-2 rounded-lg text-white font-mono font-bold text-lg shadow animate-pulse">
+                ⏱️ <span id="time">50:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 md:p-6">
+
+        <!-- STEP 1: FORM IDENTITAS SISWA -->
+        <section id="loginSection" class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mt-6">
+            <div class="border-b pb-4 mb-6">
+                <h2 class="text-2xl font-bold text-slate-900">Formulir Peserta Ujian</h2>
+                <p class="text-sm text-slate-600 mt-1">Silakan isi identitas dengan benar sebelum memulai ujian.</p>
+            </div>
+            
+            <form id="identityForm" onsubmit="startExam(event)" class="space-y-6">
+                <div>
+                    <label for="studentName" class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap Siswa <span class="text-red-500">*</span></label>
+                    <input type="text" id="studentName" required placeholder="Contoh: Ahmad Rizky" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none">
+                </div>
+
+                <div>
+                    <label for="studentClass" class="block text-sm font-semibold text-slate-700 mb-1">Kelas / Rombel <span class="text-red-500">*</span></label>
+                    <select id="studentClass" required class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none bg-white">
+                        <option value="">-- Pilih Kelas & Jurusan --</option>
+                    </select>
+                </div>
+
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded text-sm text-amber-900 space-y-1">
+                    <p class="font-bold">⚠️ Petunjuk dan Peraturan Ujian:</p>
+                    <ul class="list-disc list-inside space-y-1 text-xs md:text-sm">
+                        <li>Jumlah Soal: <b>50 Soal Pilihan Ganda</b> (Nilai Maksimal 100, 2 poin/soal).</li>
+                        <li>Waktu Pengerjaan: <b>50 Menit</b> (Berjalan otomatis sejak diklik Mulai).</li>
+                        <li><b>DILARANG MENCONTEK / BERPINDAH TAB BROWSER / BUKA APLIKASI LAIN!</b> System akan mendeteksi pelanggaran secara otomatis dan mengulang pengerjaan dari nomor 1.</li>
+                        <li>Setelah tombol Kirim Nilai diklik atau waktu habis, nilai tidak dapat diperbaiki lagi.</li>
+                    </ul>
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-6 rounded-lg shadow-lg transition duration-200 text-base">
+                    🚀 Mulai Ujian Sekarang
+                </button>
+            </form>
+        </section>
+
+        <!-- STEP 2: HALAMAN UJIAN -->
+        <section id="examSection" class="hidden space-y-6">
+            <!-- Student Header Info -->
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex flex-wrap justify-between items-center text-sm font-medium">
+                <div>
+                    <span class="text-slate-500">Peserta:</span> <span id="displayStudentName" class="text-indigo-900 font-bold"></span>
+                </div>
+                <div>
+                    <span class="text-slate-500">Kelas:</span> <span id="displayStudentClass" class="text-indigo-900 font-bold"></span>
+                </div>
+                <div>
+                    <span class="text-slate-500">Progress:</span> <span id="progressText" class="text-indigo-900 font-bold">0 / 50 Terjawab</span>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 space-y-6">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <span class="text-xs font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">Soal No. <span id="currentQuestionNum">1</span> dari 50</span>
+                </div>
+
+                <div id="questionText" class="text-base md:text-lg font-medium text-slate-800 leading-relaxed">
+                    <!-- Text Soal -->
+                </div>
+
+                <div id="optionsContainer" class="space-y-3 pt-2">
+                    <!-- Pilihan Jawaban -->
+                </div>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div class="flex justify-between items-center bg-white rounded-xl shadow p-4">
+                <button id="prevBtn" onclick="navigateQuestion(-1)" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg disabled:opacity-50 transition">
+                    ⬅️ Sebelumnya
+                </button>
+                
+                <div class="space-x-2">
+                    <button id="nextBtn" onclick="navigateQuestion(1)" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition">
+                        Berikutnya ➡️
+                    </button>
+                </div>
+            </div>
+
+            <!-- Soal Navigation Grid -->
+            <div class="bg-white rounded-xl shadow p-5">
+                <h3 class="text-sm font-bold text-slate-700 mb-3">Navigasi Nomor Soal:</h3>
+                <div id="questionGrid" class="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                    <!-- Grid Buttons -->
+                </div>
+                <div class="mt-6 text-right">
+                    <button onclick="confirmSubmit()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition">
+                        📥 Kirim Nilai Akhir
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 3: HASIL & PEMBAHASAN -->
+        <section id="resultSection" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center space-y-6">
+                <div class="inline-block p-4 bg-emerald-100 text-emerald-600 rounded-full mb-2">
+                    🎓
+                </div>
+                <h2 class="text-3xl font-extrabold text-slate-900">Ujian Selesai!</h2>
+                <p class="text-slate-600">Hasil Ujian Tengah Semester Kewirausahaan telah diterbitkan.</p>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 max-w-md mx-auto space-y-3 text-left">
+                    <div class="flex justify-between border-b pb-2">
+                        <span class="text-slate-500">Nama:</span>
+                        <span id="resultStudentName" class="font-bold text-slate-800"></span>
+                    </div>
+                    <div class="flex justify-between border-b pb-2">
+                        <span class="text-slate-500">Kelas:</span>
+                        <span id="resultStudentClass" class="font-bold text-slate-800"></span>
+                    </div>
+                    <div class="flex justify-between border-b pb-2">
+                        <span class="text-slate-500">Benar / Salah:</span>
+                        <span id="resultScoreDetail" class="font-bold text-slate-800">0 / 0</span>
+                    </div>
+                    <div class="flex justify-between pt-2 items-center">
+                        <span class="text-slate-700 font-bold">NILAI AKHIR:</span>
+                        <span id="finalScore" class="text-4xl font-black text-indigo-600">0</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 no-print">
+                    <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow transition flex items-center gap-2">
+                        🖨️ Cetak / Download Hasil (PDF)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pembahasan Soal -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 space-y-6">
+                <h3 class="text-xl font-bold text-slate-900 border-b pb-3">Kunci Jawaban & Pembahasan Soal</h3>
+                <div id="reviewContainer" class="space-y-6">
+                    <!-- Discussion rendered here -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- CHEATING / TAB SWITCH POPUP -->
+    <div id="cheatModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-4 animate-bounce">
+            <div class="text-5xl">🚨</div>
+            <h3 class="text-xl font-bold text-red-600">PERINGATAN PELANGGARAN!</h3>
+            <p class="text-sm text-slate-600">
+                Anda terdeteksi meninggalkan halaman ujian (membuka tab/aplikasi lain). 
+                <br><br>
+                <b>Sesuai peraturan, seluruh jawaban Anda telah di-reset kembali ke nomor 1!</b>
+                <br>Timer ujian tetap berjalan.
+            </p>
+            <button onclick="closeCheatModal()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg shadow transition">
+                Saya Mengerti & Lanjutkan
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // MASTER BANK SOAL HOTS (C3-C5) - KISI-KISI UTS KWU KELAS XI
+        const rawBankSoal = [
+            {
+                q: "Sebuah usaha minuman kekinian menghadapi persaingan dengan 4 kompetitor yang menjual produk dan harga hampir sama. Sebagai siswa bermodal terbatas, langkah evaluasi peluang usaha paling rasional adalah...",
+                options: [
+                    "Melakukan survei kebutuhan dan inovasi keunikan rasa",
+                    "Menurunkan harga jual jauh di bawah harga kompetitor",
+                    "Meminjam modal besar untuk promosi besar-besaran",
+                    "Mengubah lini bisnis menjadi jasa cuci motor",
+                    "Menunggu kompetitor gulung tikar dengan sendirinya"
+                ],
+                answer: 0,
+                discussion: "Strategi terbaik bagi wirausaha bermodal terbatas dalam pasar jenuh adalah menganalisis celah pasar melalui survei serta menyajikan keunikan (USP) yang belum dimiliki pesaing."
+            },
+            {
+                q: "Hasil survei produk makanan sehat menunjukkan peminat tinggi, namun biaya produksi per porsi lebih tinggi dari daya beli pasar sasaran. Tindakan paling rasional adalah...",
+                options: [
+                    "Mengevaluasi ulang komposisi bahan dan porsi produksi",
+                    "Menaikkan harga jual agar mendapat keuntungan maksimal",
+                    "Tetap memproduksi dengan menanggung kerugian awal",
+                    "Membatalkan seluruh rencana usaha secara permanen",
+                    "Menggunakan bahan kadaluarsa untuk menekan harga"
+                ],
+                answer: 0,
+                discussion: "Evaluasi kelayakan usaha memerlukan penyesuaian HPP (Harga Pokok Produksi) melalui efisiensi porsi atau opsi substitute material tanpa mengurangi standar mutu kesehatan."
+            },
+            {
+                q: "Banyak UMKM di sekitar sekolah kesulitan membuat materi promosi digital meski aplikasi desain gratis marak. Manakah peluang usaha jasa yang paling tepat difokuskan?",
+                options: [
+                    "Jasa pendampingan & pembuat desain konten UMKM lokal",
+                    "Jasa percetakan spanduk skala industri besar",
+                    "Jasa konsultasi keuangan berbasi teknologi AI",
+                    "Menjual aplikasi edit foto bajakan secara online",
+                    "Membuka toko kelontong di depan area sekolah"
+                ],
+                answer: 0,
+                discussion: "Peluang usaha jasa muncul dari kesenjangan keterampilan (skill gap). Menawarkan jasa desain langsung bagi UMKM mengatasi masalah praktis pemakain aplikasi."
+            },
+            {
+                q: "Sampah botol plastik menumpuk di lingkungan sekolah. Langkah paling menunjukkan penciptaan peluang usaha baru yang bernilai ekonomis dan ramah lingkungan adalah...",
+                options: [
+                    "Mengolah limbah plastik menjadi produk kerajinan unik",
+                    "Membakar sampah plastik di area belakang sekolah",
+                    "Menimbun sampah di dalam tanah lapangan sekolah",
+                    "Memindahkan sampah ke luar gerbang sekolah",
+                    "Melarang siswa membawa botol minum ke sekolah"
+                ],
+                answer: 0,
+                discussion: "Peluang usaha berwawasan lingkungan (upcycling) mengubah masalah/limbah menjadi barang berguna bernilai jual di masyarakat."
+            },
+            {
+                q: "Banyak orang tua bekerja kesulitan menyiapkan camilan sehat anak sepulang sekolah. Konsep bisnis paling inovatif dan solutif adalah...",
+                options: [
+                    "Layanan katering camilan sehat berlangganan untuk anak",
+                    "Membuka toko mainan anak-anak di dekat sekolah",
+                    "Menjual makanan instan kadar gula tinggi",
+                    "Menyediakan jasa antar-jemput sekolah anak",
+                    "Menjual bahan mentah mentah di pasar tradisional"
+                ],
+                answer: 0,
+                discussion: "Layanan berlangganan paket camilan sehat menyelesaikan masalah kepraktisan dan nutrisi anak secara berkala bagi orang tua sibuk."
+            },
+            {
+                q: "Kemampuan melihat, menilai kesempatan bisnis, serta mengumpulkan sumber daya untuk mengambil keuntungan disebut...",
+                options: [
+                    "Peluang Usaha",
+                    "Risiko Usaha",
+                    "Strategi Pemasaran",
+                    "Analisis Pasar",
+                    "Proyeksi Keuangan"
+                ],
+                answer: 0,
+                discussion: "Peluang usaha adalah kesempatan yang dimanfaatkan wirausahawan untuk memperoleh keuntungan dengan mengorganisir sumber daya."
+            },
+            {
+                q: "Sumber peluang usaha yang diidentifikasi dari mendengarkan keluhan, ketidakpuasan, serta harapan masyarakat dinamakan sumber dari...",
+                options: [
+                    "Pengamatan kebutuhan konsumen",
+                    "Pengalaman pribadi masa lalu",
+                    "Keahlian teknis individu",
+                    "Perubahan regulasi pemerintah",
+                    "Pengembangan hobi semata"
+                ],
+                answer: 0,
+                discussion: "Masalah dan keluhan konsumen adalah sumber utama gagasan inovasi produk atau jasa baru."
+            },
+            {
+                q: "Seorang siswa membuka jasa bekal sehat setelah mengamati teman-temannya sering mengeluh sulit mencari makan siang higienis. Sumber peluang usahanya adalah...",
+                options: [
+                    "Masalah dan kebutuhan lingkungan sekitar",
+                    "Gaya hidup mewah yang sedang viral",
+                    "Penemuan teknologi canggih terkini",
+                    "Kebijakan kurikulum sekolah baru",
+                    "Tuntutan tugas guru mata pelajaran"
+                ],
+                answer: 0,
+                discussion: "Pengamatan langsung terhadap masalah rutin lingkungan terdekat (sekolah) merupakan stimulus ide usaha yang tajam."
+            },
+            {
+                q: "Metode evaluasi sistematis untuk memeta Kekuatan, Kelemahan, Peluang, dan Ancaman suatu usaha dikenal sebagai...",
+                options: [
+                    "Analisis SWOT",
+                    "Analisis Break Even Point",
+                    "Design Thinking Process",
+                    "Business Model Canvas",
+                    "Testing & Validation"
+                ],
+                answer: 0,
+                discussion: "SWOT (Strengths, Weaknesses, Opportunities, Threats) digunakan mengevaluasi posisi internal dan eksternal bisnis."
+            },
+            {
+                q: "Manakah contoh peluang usaha berbasis jasa yang berpotensi tinggi dijalankan siswa di area sekolah?",
+                options: [
+                    "Jasa ketik & pengetikan tugas / cetak dokumen",
+                    "Usaha pabrik manufaktur otomotif",
+                    "Jasa ekspedisi kargo antar negara",
+                    "Restoran bintang lima khusus umum",
+                    "Supermarket perlengkapan rumah tangga"
+                ],
+                answer: 0,
+                discussion: "Jasa ketik dan print dokumen merupakan jasa terdekat sesuai kapasitas siswa SMK dan kebutuhan warga sekolah."
+            },
+            {
+                q: "Usaha percetakan Anda mendapat persaingan dari pesaing baru yang membanting harga sangat murah. Kombinasi sikap wirausaha yang tepat adalah...",
+                options: [
+                    "Menjaga kualitas & memberi garansi purna jual",
+                    "Ikut menurunkan harga hingga merugi total",
+                    "Melaporkan pesaing ke pihak kepolisian",
+                    "Menutup usaha dan mencari bidang lain",
+                    "Membeli seluruh mesin milik pesaing baru"
+                ],
+                answer: 0,
+                discussion: "Persaingan harga diatasi dengan meningkatkan nilai tambah (value), kualitas pelayanan, serta hubungan emosional dengan pelanggan."
+            },
+            {
+                q: "Inovasi pengolahan limbah kulit jagung menjadi benda seni dengan memberdayakan warga sekitar memberikan manfaat utama berupa...",
+                options: [
+                    "Menciptakan lapangan kerja & mengurangi sampah",
+                    "Meningkatkan konsumsi bahan pangan jagung",
+                    "Menggantikan fungsi mesin-mesin canggih",
+                    "Menghilangkan persaingan bisnis kerajinan",
+                    "Menurunkan tingkat inflasi nasional secara instan"
+                ],
+                answer: 0,
+                discussion: "Kewirausahaan berbasis limbah sosial (sociopreneur) berdampak ganda: kelestarian lingkungan dan pemberdayaan ekonomi warga."
+            },
+            {
+                q: "Dua pemuda mengelola lahan pertanian sama. Pemuda A menjual hasil panen mentah, sedangkan Pemuda B mengolahnya menjadi keripik kemasan. Manfaat kreativitas Pemuda B adalah...",
+                options: [
+                    "Meningkatkan nilai tambah dan daya saing produk",
+                    "Mempercepat masa panen tanaman di lahan",
+                    "Mengurangi jumlah tenaga kerja yang dibutuhkan",
+                    "Menghilangkan risiko kerusakan produk komoditas",
+                    "Membuat produk tidak membutuhkan pemasaran"
+                ],
+                answer: 0,
+                discussion: "Kreativitas menciptakan 'added value' (nilai tambah) yang mengubah barang mentah menjadi produk olahan berharga jual tinggi."
+            },
+            {
+                q: "Kedai kopi lokal memberikan pelatihan meracik kopi (barista) secara gratis bagi pemuda pengangguran di kelurahan. Manfaat tindakan ini bagi masyarakat adalah...",
+                options: [
+                    "Peningkatan keterampilan & potensi kemandirian ekonomi",
+                    "Monopoli bisnis kopi di wilayah kelurahan",
+                    "Penurunan harga bahan baku kopi dunia",
+                    "Penghapusan pajak usaha bagi pemilik kedai",
+                    "Pengurangan biaya operasional harian kedai"
+                ],
+                answer: 0,
+                discussion: "Transfer keterampilan meningkatkan kapabilitas sumber daya manusia lokal untuk menekan angka pengangguran."
+            },
+            {
+                q: "Pengrajin kayu rutin memperbarui desain ukiran dan memanfaatkan marketplace digital saat penjualan luring menurun. Fungsi kreativitas di sini adalah...",
+                options: [
+                    "Menjaga keberlangsungan usaha di era perubahan",
+                    "Menghilangkan biaya operasional pengiriman",
+                    "Memastikan tidak ada komplain dari pembeli",
+                    "Membuat harga bahan baku kayu lebih murah",
+                    "Mengurangi daya tahan produk kayu olahan"
+                ],
+                answer: 0,
+                discussion: "Kreativitas dan adaptasi teknologi berfungsi menjaga relevansi usaha dari ancaman kepunahan akibat perubahan zaman."
+            },
+            {
+                q: "Pengusaha kerupuk ikan mengubah fokus dari persaingan harga murah menjadi variasi rasa unik dan kemasan ziplock kedap udara. Pelajaran utamanya adalah...",
+                options: [
+                    "Inovasi kemasan & variasi rasa meningkatkan loyalitas",
+                    "Harga murah adalah satu-satunya kunci sukses bisnis",
+                    "Ukuran produk harus dibuat sekecil mungkin",
+                    "Bisnis makanan tidak memerlukan aspek higienis",
+                    "Persaingan harga selalu memenangkan pasar"
+                ],
+                answer: 0,
+                discussion: "Diferensiasi produk (rasa & kemasan) lebih efektif membangun reputasi jangka panjang dibanding perang harga."
+            },
+            {
+                q: "Wirausahawan yang menyusun perencanaan matang dan konsisten mengeksekusinya menunjukkan karakter...",
+                options: [
+                    "Disiplin dan terencana",
+                    "Spekulatif dan impulsif",
+                    "Pasif dan menunggu takdir",
+                    "Otoriter dan tertutup",
+                    "Kreatif tanpa arah"
+                ],
+                answer: 0,
+                discussion: "Komitmen pada perencanaan dan eksekusi terstruktur merupakan ciri disiplin dan orientasi hasil."
+            },
+            {
+                q: "Seorang pemilik bengkel tetap berjuang memperbaiki kualitas layanan walau sempat kehilangan pelanggan akibat kesalahan teknis. Karakter yang tampak adalah...",
+                options: [
+                    "Pantang menyerah dan bertanggung jawab",
+                    "Mudah putus asa dan menyalahkan staf",
+                    "Keras kepala tanpa mau evaluasi",
+                    "Meremehkan tingkat kepuasan pelanggan",
+                    "Pasrah pada situasi persaingan bisnis"
+                ],
+                answer: 0,
+                discussion: "Sikap mau belajar dari kegagalan dan memperbaiki kesalahan menunjukkan ketahanan mental (resilience) serta tanggung jawab."
+            },
+            {
+                q: "Karakter utama yang paling mendukung keberhasilan usaha percetakan sekolah yang selalu tepat waktu, jujur pada spesifikasi kertas, dan ramah adalah...",
+                options: [
+                    "Integritas dan profesionalisme",
+                    "Ambisius mengejar profit semata",
+                    "Kemampuan bersilat kata dengan pelanggan",
+                    "Sikap tertutup mengenai proses cetak",
+                    "Keberanian mengambil risiko tanpa batas"
+                ],
+                answer: 0,
+                discussion: "Integritas (kejujuran) dan ketepatan janji membangun kepercayaan (trust) kunci pelanggan kembali."
+            },
+            {
+                q: "Pemilik usaha katering rutin menelepon pelanggan lama untuk menanyakan kritik dan saran. Hal ini mencerminkan pola pikir wirausaha yaitu...",
+                options: [
+                    "Berorientasi pada kepuasan pelanggan dan perbaikan",
+                    "Ragu-ragu terhadap kualitas masakan sendiri",
+                    "Membuang waktu operasional usaha katering",
+                    "Mencari-cari alasan menaikkan tarif katering",
+                    "Bergantung penuh pada keputusan orang lain"
+                ],
+                answer: 0,
+                discussion: "Wirausaha sejati memandang umpan balik (feedback) sebagai sarana tumbuh dan peningkatan mutu."
+            },
+            {
+                q: "Manakah hal yang BUKAN merupakan bagian dari tahapan proses penentuan bisnis bagi seorang wirausahawan?",
+                options: [
+                    "Mengabaikan tren dan potensi pasar lokal",
+                    "Menganalisis ide dan peluang bisnis",
+                    "Memperhitungkan kebutuhan modal usaha",
+                    "Menentukan target segmen konsumen",
+                    "Membuat strategi pemasaran produk"
+                ],
+                answer: 0,
+                discussion: "Mengabaikan tren pasar adalah tindakan spekulatif yang bertentangan dengan proses rasional penetapan usaha."
+            },
+            {
+                q: "Berikut ini yang BUKAN merupakan sumber daya utama (6M) dalam memulai suatu usaha adalah...",
+                options: [
+                    "Manipulation (Manipulasi data)",
+                    "Money (Uang/Modal)",
+                    "Man (Manusia/Tenaga kerja)",
+                    "Material (Bahan baku)",
+                    "Market (Pasar sasaran)"
+                ],
+                answer: 0,
+                discussion: "Unsur 6M wirausaha: Man, Money, Material, Machine, Method, Market. Manipulation bukan sumber daya wirausaha."
+            },
+            {
+                q: "Tindakan menjual produk sesuai dengan kualitas sebenarnya tanpa mengurangi timbangan atau spesifikasi mencerminkan sikap...",
+                options: [
+                    "Jujur dan transparan",
+                    "Cari untung cepat",
+                    "Rendah diri berlebihan",
+                    "Hemat operasional",
+                    "Kreatif manipulatif"
+                ],
+                answer: 0,
+                discussion: "Sikap jujur merupakan dasar etika bisnis yang menjamin kelangsungan reputasi usaha."
+            },
+            {
+                q: "Makna utama dari karakteristik 'menguasai target pasar' dalam wirausaha adalah...",
+                options: [
+                    "Memahami perilaku, kebutuhan, dan daya beli konsumen",
+                    "Memaksa semua orang membeli produk kita",
+                    "Menguasai seluruh toko fisik di area kota",
+                    "Menjual produk dengan harga paling mahal",
+                    "Membeli seluruh saham perusahaan kompetitor"
+                ],
+                answer: 0,
+                discussion: "Menguasai pasar berarti paham betul profil, preferensi, dan kemampuan finansial konsumen sasaran."
+            },
+            {
+                q: "Contoh tindakan wirausahawan yang menunjukkan penerapkan inovasi secara nyata adalah...",
+                options: [
+                    "Mengembangkan kemasan ramah lingkungan yang praktis",
+                    "Meniru total produk pesaing tanpa perubahan",
+                    "Menjual barang lama yang sudah tidak berfungsi",
+                    "Menutup toko saat ada persaingan baru",
+                    "Menolak penggunaan transaksi pembayaran digital"
+                ],
+                answer: 0,
+                discussion: "Inovasi melibatkan pembaruan ide menjadi solusi nyata yang bernilai tambah, seperti kemasan baru yang efisien."
+            },
+            {
+                q: "Perilaku kerja yang mencerminkan kemampuan menyelesaikan setiap tahapan tugas usaha secara fokus hingga tuntas disebut...",
+                options: [
+                    "Kerja tuntas dan bertanggung jawab",
+                    "Kerja cerdas tanpa proses",
+                    "Kerja keras tanpa tujuan",
+                    "Kerja mawas diri berlebihan",
+                    "Kerja lambat berhati-hati"
+                ],
+                answer: 0,
+                discussion: "Kerja tuntas ditunjukkan dari komitmen menyelesaikan pekerjaan dari awal hingga akhir sesuai standar."
+            },
+            {
+                q: "Bentuk komitmen tinggi yang wajib dimiliki seorang wirausahawan muda adalah...",
+                options: [
+                    "Fokus pada tujuan usaha meski menghadapi rintangan",
+                    "Mengabaikan saran dan kritik dari pembeli",
+                    "Selalu menolak perubahan teknologi baru",
+                    "Mengubah jenis usaha setiap minggu",
+                    "Menyerahkan seluruh keputusan pada karyawan"
+                ],
+                answer: 0,
+                discussion: "Komitmen tinggi berarti konsistensi dan daya tahan menjaga visi bisnis dalam situasi sulit."
+            },
+            {
+                q: "Istilah 'pengusaha' dalam bahasa Indonesia merujuk pada seseorang yang...",
+                options: [
+                    "Menjalankan kegiatan usaha secara mandiri & menanggung risiko",
+                    "Bekerja sebagai pegawai negeri sipil tetap",
+                    "Menerima gaji bulanan dari instansi pemerintah",
+                    "Mencari bantuan dana tanpa membuat produk",
+                    "Mengkritik kebijakan ekonomi di media massa"
+                ],
+                answer: 0,
+                discussion: "Pengusaha/wirausaha adalah entitas yang mengorganisir usaha mandiri serta berani menanggung risiko finansial."
+            },
+            {
+                q: "Manakah yang BUKAN termasuk fungsi wirausahawan bagi perekonomian masyarakat?",
+                options: [
+                    "Meningkatkan angka ketergantungan sosial",
+                    "Membuka lapangan pekerjaan baru",
+                    "Meningkatkan pendapatan masyarakat lokal",
+                    "Mendorong efisiensi alokasi sumber daya",
+                    "Memicu inovasi produk kebutuhan masyarakat"
+                ],
+                answer: 0,
+                discussion: "Wirausaha justru menurunkan angka ketergantungan sosial dengan menciptakan lapangan kerja mandiri."
+            },
+            {
+                q: "Seorang siswa SMK yang berwirausaha sering keteteran membagi waktu antara tugas sekolah dan pesanan pelanggan. Tantangan ini membutuhkan...",
+                options: [
+                    "Manajemen waktu dan skala prioritas yang ketat",
+                    "Meninggalkan sekolah demi bisnis sepenuhnya",
+                    "Menolak semua pesanan pelanggan secara permanen",
+                    "Mengerjakan tugas sekolah saat melayani pembeli",
+                    "Membayar orang lain mengerjakan ujian sekolah"
+                ],
+                answer: 0,
+                discussion: "Solusi atas benturan peran siswa-wirausaha adalah penyusunan jadwal prioritas (Time Management)."
+            },
+            {
+                q: "Siswa jurusan Teknik Mesin membuat dudukan laptop ergonomis dari limbah plat besi sisa praktik. Penerapan konsep inovasi dalam kasus ini adalah...",
+                options: [
+                    "Mengubah barang sisa menjadi produk bernilai guna",
+                    "Menjual limbah besi secara kiloan ke pengepul",
+                    "Membuat produk yang meniru barang impor mahal",
+                    "Membuang plat besi karena mengotori bengkel",
+                    "Menggunakan modal besar untuk membeli plat baru"
+                ],
+                answer: 0,
+                discussion: "Mengubah bahan yang dianggap sampah menjadi barang ergonomis bernilai fungsi adalah wujud nyata kreativitas/inovasi."
+            },
+            {
+                q: "Seorang siswa DKV mendapat nilai rendah pada tugas desain logo pertama. Ia lalu mempelajari kembali teori warna dan berlatih hingga karya berikutnya dipuji. Sikap siswa ini mencerminkan...",
+                options: [
+                    "Growth mindset (Pola pikir berkembang)",
+                    "Fixed mindset (Pola pikir kaku)",
+                    "Sikap apatis terhadap kritik",
+                    "Rasa percaya diri yang berlebihan",
+                    "Ketergantungan pada bakat alami"
+                ],
+                answer: 0,
+                discussion: "Growth mindset meyakini bahwa kemampuan dapat terus ditingkatkan melalui usaha, latihan, dan evaluasi kegagalan."
+            },
+            {
+                q: "Tim proyek KWU terdiri dari A (jago menggambar), B (pandai bicara & negosiasi), dan C (teliti berhitung). Pembagian tugas paling produktif adalah...",
+                options: [
+                    "A buat desain, B Pemasaran, C Keuangan",
+                    "A pegang keuangan, B buat desain, C Pemasaran",
+                    "B buat desain, C Pemasaran, A Keuangan",
+                    "Semua anggota mengerjakan semua tugas bersamaan",
+                    "A dan B bertugas, C hanya mengawasi"
+                ],
+                answer: 0,
+                discussion: "Prinsip 'The right man on the right place' sesuai potensi kompetensi mengoptimalkan kinerja tim usaha."
+            },
+            {
+                q: "Siswa jago menggambar ilustrasi tapi belum yakin menjadikan hobinya sebagai karier bisnis. Langkah awal pemetaan potensi yang paling tepat adalah...",
+                options: [
+                    "Membuat portofolio digital & membuka komisi kecil",
+                    "Langsung menyewa ruko studio seni mahal",
+                    "Berhenti menggambar dan fokus ke bidang lain",
+                    "Menunggu tawaran kerja dari perusahaan besar",
+                    "Membeli peralatan melukis paling mahal"
+                ],
+                answer: 0,
+                discussion: "Pemetaan karier diawali dengan uji pasar skala kecil (prototipe/portofolio) untuk mengukur respon minat calon pelanggan."
+            },
+            {
+                q: "Penjualan kelompok usaha siswa turun akibat kompetitor baru. Ketua kelompok mengajak anggota berdiskusi mencari kelemahan produk sendiri tanpa panik. Karakter yang ditunjukkan adalah...",
+                options: [
+                    "Kepemimpinan adaptif dan berorientasi solusi",
+                    "Sikap emosional dan menyalahkan keadaan",
+                    "Ketakutan berlebih terhadap persaingan",
+                    "Keras kepala dan tidak mau berubah",
+                    "Pasrah pada kekalahan pasar"
+                ],
+                answer: 0,
+                discussion: "Pemimpin adaptif tenang saat krisis dan mengarahkan energi tim untuk evaluasi internal dan inovasi ulang."
+            },
+            {
+                q: "Seorang siswa memiliki sangat banyak ide usaha (baju, makanan, jasa), namun kesulitan mengeksekusi karena tidak fokus. Saran perbaikan paling tepat adalah...",
+                options: [
+                    "Fokus pada 1 ide paling dikuasai & buat action plan",
+                    "Menjalankan semua 5 ide sekaligus dalam waktu sama",
+                    "Meninggalkan seluruh ide dan berhenti berbisnis",
+                    "Menjual ide-ide tersebut kepada teman dermawan",
+                    "Meminta orang lain menjalankan semua idenya"
+                ],
+                answer: 0,
+                discussion: "Eksekusi bisnis memerlukan fokus tinggi. Memulai dari satu ide tervalidasi mencegah dispersi energi dan kegagalan modal."
+            },
+            {
+                q: "Kelompok siswa gagal menjual produk aplikasi di pameran. Mereka melakukan debriefing dan menyimpulkan UI aplikasi kurang ramah pengguna tanpa saling menyalahkan. Ciri growth mindset di sini adalah...",
+                options: [
+                    "Melihat kegagalan sebagai pengalaman belajar",
+                    "Menyalahkan anggota tim bagian pemrogram",
+                    "Menganggap pengunjung pameran tidak paham produk",
+                    "Menyesal telah mengikuti kegiatan pameran",
+                    "Membuat aplikasi lain yang sama persis"
+                ],
+                answer: 0,
+                discussion: "Growth mindset menganggap kegagalan sebagai data umpan balik konstruktif untuk perbaikan produk masa depan."
+            },
+            {
+                q: "Siswa yang selalu hadir tepat waktu saat piket produksi usaha kelompok dan merawat alat kerja dengan bersih menunjukkan karakter...",
+                options: [
+                    "Disiplin, efisien, dan bertanggung jawab",
+                    "Suka mencari perhatian guru pendamping",
+                    "Pengambil risiko ekstrim dalam bisnis",
+                    "Pribadi yang kaku dan tidak kreatif",
+                    "Terpaksa karena aturan sekolah"
+                ],
+                answer: 0,
+                discussion: "Kedisiplinan pada aturan kerja dan pemeliharaan aset memicu produktivitas dan menekan kebiasaan buruk dalam operasional."
+            },
+            {
+                q: "Siswa tertarik pada bidang komunikasi dan pemasaran digital. Langkah pemetaan karier terstruktur yang wajib diambil adalah...",
+                options: [
+                    "Mengambil sertifikasi/kursus digital marketing & praktik",
+                    "Langsung melamar jadi Manager Pemasaran PT besar",
+                    "Menunggu panggilan kerja tanpa membuat karya",
+                    "Mempelajari mesin bubut manufaktur skala berat",
+                    "Membeli pengikut (followers) media sosial palsu"
+                ],
+                answer: 0,
+                discussion: "Pemetaan karier mengharuskan penyelarasan minat dengan peningkatan kompetensi teruji (sertifikasi & praktik portofolio)."
+            },
+            {
+                q: "Tim siswa kombinasi jurusan DKV dan TKJ memanfaatkan keahlian desain & jaringan internet untuk menawarkan jasa branding digital UMKM desa. Tindakan ini merupakan...",
+                options: [
+                    "Kolaborasi potensi menjadi peluang usaha solutif",
+                    "Tindakan monopoli pasar digital secara ilegal",
+                    "Pemborosan energi siswa di luar kurikulum",
+                    "Persaingan tidak sehat antar jurusan SMK",
+                    "Usaha yang terlalu berisiko tinggi gagal"
+                ],
+                answer: 0,
+                discussion: "Sinergi keahlian lintas disiplin (DKV & TKJ) menciptakan nilai jual usaha komplementer yang menjawab kebutuhan pasar nyata."
+            },
+            {
+                q: "Sebuah toko kelontong di depan sekolah mulai sepi karena siswa lebih suka belanja di minimarket modern. Inovasi paling terjangkau yang bisa ditawarkan pemilik toko adalah...",
+                options: [
+                    "Layanan pesan antar via WhatsApp ke area sekolah",
+                    "Mengubah bangunan toko menjadi mall 3 lantai",
+                    "Menjual barang dengan kerugian modal total",
+                    "Melarang siswa belanja di minimarket modern",
+                    "Menutup toko dan pindah ke luar pulau"
+                ],
+                answer: 0,
+                discussion: "Memanfaatkan media komunikasi sederhana (WhatsApp) untuk layanan pesan-antar merupakan inovasi pelayanan berbiaya rendah (low cost innovation)."
+            },
+            {
+                q: "Dalam analisis SWOT usaha laundry sepatu di lingkungan kampus/sekolah, fakta bahwa 'Belum ada pesaing sejenis di radius 2 km' tergolong ke dalam...",
+                options: [
+                    "Opportunity (Peluang)",
+                    "Strength (Kekuatan internal)",
+                    "Weakness (Kelemahan internal)",
+                    "Threat (Ancaman eksternal)",
+                    "Strategy (Langkah taktis)"
+                ],
+                answer: 0,
+                discussion: "Ketiadaan pesaing di lingkungan luar merupakan faktor lingkungan positif yang dikategorikan sebagai Opportunity (Peluang)."
+            },
+            {
+                q: "Seorang wirausahawan makanan mendapati harga cabai melambung tinggi. Agar rasa masakan tidak berubah dan pembeli tidak kabur, tindakan tepatnya adalah...",
+                options: [
+                    "Menyesuaikan porsi sambal/efisiensi tanpa ubah resep",
+                    "Mengganti cabai dengan zat pewarna berbahaya",
+                    "Menaikkan harga makanan hingga 300 persen",
+                    "Tutup sementara sampai harga cabai turun",
+                    "Mengurangi porsi utama nasi menjadi separuh"
+                ],
+                answer: 0,
+                discussion: "Efisiensi pada komponen pelengkap tanpa mengubah identitas rasa utama menjaga loyalitas konsumen saat krisis harga bahan."
+            },
+            {
+                q: "Manakah tindakan yang mencerminkan pemikiran 'Out of the Box' dalam mengatasi sampah kemasan plastik jajanan sekolah?",
+                options: [
+                    "Membuat sistem refill makanan menggunakan wadah sendiri",
+                    "Membuang sampah plastik pada tempatnya",
+                    "Menyapu halaman sekolah setiap dua jam",
+                    "Membeli tempat sampah tambahan yang mahal",
+                    "Membiarkan sampah menumpuk di pojok kantin"
+                ],
+                answer: 0,
+                discussion: "Pemikiran radikal/Out of the box memotong akar masalah dengan mengubah sistem kemasan menjadi wadah ulang isi (refillable)."
+            },
+            {
+                q: "Wirausahawan yang berani mengambil risiko terukur (calculated risk) ditunjukkan oleh sikap...",
+                options: [
+                    "Menganalisis potensi rugi-laba sebelum meluncurkan produk",
+                    "Langsung investasi modal besar tanpa riset pasar",
+                    "Menolak semua ide baru yang memiliki risiko gagal",
+                    "Meminjam uang bank melebihi kapasitas kemampuan bayar",
+                    "Menyerahkan nasib usaha pada keberuntungan semata"
+                ],
+                answer: 0,
+                discussion: "Calculated risk artinya berani mengambil peluang setelah memperhitungkan dan menyiapkan mitigasi atas risiko buruk yang mungkin terjadi."
+            },
+            {
+                q: "Karakter jujur seorang siswa SMK yang mengelola kantin kejujuran tercermin saat...",
+                options: [
+                    "Mencatat dan menyetorkan uang sesuai barang diambil",
+                    "Mengambil kembalian lebih untuk ongkos jalan",
+                    "Memberikan diskon rahasia kepada teman dekat",
+                    "Tidak mencatat barang yang rusak saat dijual",
+                    "Melaporkan barang laku padahal belum terbayar"
+                ],
+                answer: 0,
+                discussion: "Integritas pada kantin kejujuran diukur dari kesesuaian antara jumlah barang terambil dan alokasi pembayaran yang disetorkan."
+            },
+            {
+                q: "Pernyataan yang PALING TEPAT menggambarkan hubungan antara kreativitas dan inovasi adalah...",
+                options: [
+                    "Kreativitas adalah gagasan; Inovasi adalah realisasinya",
+                    "Kreativitas menggunakan modal; Inovasi tanpa modal",
+                    "Kreativitas khusus seni; Inovasi khusus mesin",
+                    "Kreativitas menguntungkan; Inovasi merugikan usaha",
+                    "Kreativitas dan Inovasi adalah dua hal yang identik"
+                ],
+                answer: 0,
+                discussion: "Kreativitas adalah daya pikir memunculkan ide baru (thinking new things), sedangkan inovasi adalah tindakan menerapkan ide tersebut (doing new things)."
+            },
+            {
+                q: "Seorang siswa jurusan TKR membuka jasa servis berkala panggilan ke rumah pelanggan. Elemen SWOT yang menjadi kekuatan (Strength) utamanya adalah...",
+                options: [
+                    "Kepraktisan & kenyamanan servis langsung di rumah",
+                    "Terbatasnya peralatan canggih yang dibawa",
+                    "Kenaikan harga suku cadang kendaraan",
+                    "Munculnya bengkel resmi berskala besar",
+                    "Cuaca hujan yang menghambat perjalanan"
+                ],
+                answer: 0,
+                discussion: "Kelebihan internal layanan door-to-door ini terletak pada aspek kemudahan/kemudahan lokasi bagi pelanggan (home service)."
+            },
+            {
+                q: "Faktor internal paling dominan yang sering menyebabkan kegagalan wirausahawan pemula adalah...",
+                options: [
+                    "Kurangnya disiplin pengelolaan keuangan usaha",
+                    "Sengitnya persaingan dari perusahaan asing",
+                    "Bencana alam yang tidak dapat diprediksi",
+                    "Perubahan kebijakan undang-undang negara",
+                    "Sikap konsumen yang terlalu kritis"
+                ],
+                answer: 0,
+                discussion: "Kegagalan internal wirausaha pemula paling sering dipicu pencampuran uang pribadi dan uang usaha serta ketiadaan pembukuan."
+            },
+            {
+                q: "Mengapa wirausahawan penting untuk terus melakukan evaluasi produk secara berkala?",
+                options: [
+                    "Untuk memastikan produk tetap relevan dengan kebutuhan pasar",
+                    "Agar dapat menaikkan harga produk setiap bulan",
+                    "Untuk mengganti seluruh karyawan yang bekerja",
+                    "Agar dianggap sibuk oleh pesaing bisnis",
+                    "Untuk menghabiskan sisa anggaran modal usaha"
+                ],
+                answer: 0,
+                discussion: "Evaluasi berkala menjamin kualitas produk terjaga dan cepat menyesuaikan diri dengan pergeseran selera konsumen."
+            }
+        ];
+
+        // APPS STATE VARIABLES
+        let examQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let timerInterval = null;
+        let timeRemaining = 50 * 60; // 50 menit (detik)
+        let studentData = { name: '', class: '' };
+        let isExamSubmitted = false;
+
+        // CLASS LIST POPULATION
+        function generateClassOptions() {
+            const select = document.getElementById('studentClass');
+            const classes = [];
+            
+            const addRombel = (prefix, count) => {
+                for (let i = 1; i <= count; i++) {
+                    classes.push(`${prefix} ${i}`);
+                }
+            };
+
+            addRombel('DKV', 4);
+            addRombel('TKJ', 13);
+            addRombel('TKR', 11);
+            addRombel('TSM', 13);
+            addRombel('TITL', 4);
+            addRombel('TAV', 1);
+            addRombel('TPM', 3);
+            addRombel('TAB', 9);
+
+            classes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                select.appendChild(opt);
+            });
+        }
+
+        // UTILITY: SHUFFLE ARRAY (Fisher-Yates)
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // START EXAM LOGIC
+        function startExam(e) {
+            e.preventDefault();
+            const name = document.getElementById('studentName').value.trim();
+            const studentClass = document.getElementById('studentClass').value;
+
+            if (!name || !studentClass) {
+                alert("Harap isi Nama dan Pilih Kelas terlebih dahulu!");
+                return;
+            }
+
+            studentData.name = name;
+            studentData.class = studentClass;
+
+            document.getElementById('displayStudentName').innerText = name;
+            document.getElementById('displayStudentClass').innerText = studentClass;
+
+            // Generate randomized 50 questions
+            prepareRandomQuestions();
+
+            // UI Transitions
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('examSection').classList.remove('hidden');
+            document.getElementById('timerDisplay').classList.remove('hidden');
+
+            // Render First Question & Grid
+            renderQuestion();
+            renderGrid();
+            startTimer();
+
+            // Setup anti-cheat detection
+            setupAntiCheat();
+        }
+
+        // PREPARE & SHUFFLE QUESTIONS & OPTIONS
+        function prepareRandomQuestions() {
+            // Shuffle whole bank
+            let shuffledBank = shuffleArray(rawBankSoal);
+            
+            // Take 50 (if bank has less, loop/take available)
+            let selected = shuffledBank.slice(0, 50);
+
+            // Shuffle options for each selected question
+            examQuestions = selected.map((qObj, qIdx) => {
+                let optionsWithIdx = qObj.options.map((optText, origIdx) => ({
+                    text: optText,
+                    isCorrect: origIdx === qObj.answer
+                }));
+                
+                let shuffledOpts = shuffleArray(optionsWithIdx);
+                let newCorrectIdx = shuffledOpts.findIndex(o => o.isCorrect);
+
+                return {
+                    originalNum: qIdx + 1,
+                    question: qObj.q,
+                    options: shuffledOpts.map(o => o.text),
+                    correctAnswer: newCorrectIdx,
+                    discussion: qObj.discussion
+                };
+            });
+        }
+
+        // TIMER LOGIC
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert("⏱️ Waktu ujian telah habis! Sistem akan mengumpulkan jawaban Anda secara otomatis.");
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('time').innerText = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // RENDER QUESTION
+        function renderQuestion() {
+            const q = examQuestions[currentQuestionIndex];
+            document.getElementById('currentQuestionNum').innerText = currentQuestionIndex + 1;
+            document.getElementById('questionText').innerText = q.question;
+
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            const optionLabels = ['A', 'B', 'C', 'D', 'E'];
+
+            q.options.forEach((optText, idx) => {
+                const isSelected = userAnswers[currentQuestionIndex] === idx;
+                
+                const optionBtn = document.createElement('div');
+                optionBtn.onclick = () => selectOption(idx);
+                optionBtn.className = `p-4 rounded-xl border-2 cursor-pointer transition flex items-center gap-3 ${
+                    isSelected 
+                    ? 'border-indigo-600 bg-indigo-50/80 text-indigo-900 font-medium' 
+                    : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50 text-slate-700'
+                }`;
+
+                optionBtn.innerHTML = `
+                    <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs shrink-0 ${
+                        isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 text-slate-500'
+                    }">
+                        ${optionLabels[idx]}
+                    </div>
+                    <div class="text-sm md:text-base leading-snug">${optText}</div>
+                `;
+                container.appendChild(optionBtn);
+            });
+
+            // Update Nav Buttons
+            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+            document.getElementById('nextBtn').innerText = (currentQuestionIndex === examQuestions.length - 1) ? 'Selesai 🏁' : 'Berikutnya ➡️';
+
+            updateProgressText();
+            renderGrid();
+        }
+
+        function selectOption(optIdx) {
+            if (isExamSubmitted) return;
+            userAnswers[currentQuestionIndex] = optIdx;
+            renderQuestion();
+        }
+
+        function navigateQuestion(direction) {
+            let target = currentQuestionIndex + direction;
+            if (target >= 0 && target < examQuestions.length) {
+                currentQuestionIndex = target;
+                renderQuestion();
+            }
+        }
+
+        function jumpToQuestion(index) {
+            currentQuestionIndex = index;
+            renderQuestion();
+        }
+
+        // RENDER QUESTION GRID
+        function renderGrid() {
+            const grid = document.getElementById('questionGrid');
+            grid.innerHTML = '';
+
+            examQuestions.forEach((_, idx) => {
+                const isAnswered = userAnswers.hasOwnProperty(idx);
+                const isCurrent = idx === currentQuestionIndex;
+
+                const btn = document.createElement('button');
+                btn.onclick = () => jumpToQuestion(idx);
+                btn.className = `h-10 rounded-lg text-xs font-bold transition flex items-center justify-center border ${
+                    isCurrent 
+                    ? 'ring-2 ring-indigo-600 border-indigo-600 font-extrabold' 
+                    : ''
+                } ${
+                    isAnswered 
+                    ? 'bg-indigo-600 text-white border-indigo-600' 
+                    : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                }`;
+                btn.innerText = idx + 1;
+                grid.appendChild(btn);
+            });
+        }
+
+        function updateProgressText() {
+            const count = Object.keys(userAnswers).length;
+            document.getElementById('progressText').innerText = `${count} / ${examQuestions.length} Terjawab`;
+        }
+
+        // ANTI-CHEAT SWITCH TAB DETECTION
+        function setupAntiCheat() {
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && !isExamSubmitted) {
+                    triggerCheatReset();
+                }
+            });
+
+            window.addEventListener('blur', () => {
+                if (!isExamSubmitted) {
+                    triggerCheatReset();
+                }
+            });
+        }
+
+        function triggerCheatReset() {
+            // Reset answers and position, keep timer running
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            renderQuestion();
+            renderGrid();
+            
+            // Show modal
+            document.getElementById('cheatModal').classList.remove('hidden');
+        }
+
+        function closeCheatModal() {
+            document.getElementById('cheatModal').classList.add('hidden');
+        }
+
+        // SUBMIT EXAM LOGIC
+        function confirmSubmit() {
+            const answeredCount = Object.keys(userAnswers).length;
+            const total = examQuestions.length;
+
+            if (answeredCount < total) {
+                if (!confirm(`Anda baru menjawab ${answeredCount} dari ${total} soal. Yakin ingin mengumpulkan nilai sekarang?`)) {
+                    return;
+                }
+            } else {
+                if (!confirm("Yakin ingin mengumpulkan hasil ujian sekarang? Jawaban tidak dapat diubah setelahnya.")) {
+                    return;
+                }
+            }
+
+            submitExam();
+        }
+
+        function submitExam() {
+            isExamSubmitted = true;
+            clearInterval(timerInterval);
+
+            // Calculate Score
+            let correctCount = 0;
+            examQuestions.forEach((q, idx) => {
+                if (userAnswers[idx] === q.correctAnswer) {
+                    correctCount++;
+                }
+            });
+
+            const score = correctCount * 2; // 50 soal * 2 = 100
+
+            // Fill Result Page
+            document.getElementById('resultStudentName').innerText = studentData.name;
+            document.getElementById('resultStudentClass').innerText = studentData.class;
+            document.getElementById('resultScoreDetail').innerText = `${correctCount} Benar / ${examQuestions.length - correctCount} Salah`;
+            document.getElementById('finalScore').innerText = score;
+
+            // Render Pembahasan
+            renderReview();
+
+            // Toggle UI
+            document.getElementById('examSection').classList.add('hidden');
+            document.getElementById('timerDisplay').classList.add('hidden');
+            document.getElementById('resultSection').classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // RENDER PEMBAHASAN / REVIEW
+        function renderReview() {
+            const container = document.getElementById('reviewContainer');
+            container.innerHTML = '';
+            const labels = ['A', 'B', 'C', 'D', 'E'];
+
+            examQuestions.forEach((q, idx) => {
+                const userAns = userAnswers[idx];
+                const isCorrect = userAns === q.correctAnswer;
+
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-xl border ${isCorrect ? 'border-emerald-200 bg-emerald-50/40' : 'border-red-200 bg-red-50/40'} space-y-3`;
+
+                let userAnsText = userAns !== undefined ? `${labels[userAns]}. ${q.options[userAns]}` : '<i class="text-red-500">Tidak Dijawab</i>';
+                let correctAnsText = `${labels[q.correctAnswer]}. ${q.options[q.correctAnswer]}`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="font-bold text-slate-800 text-sm md:text-base">${idx + 1}. ${q.question}</span>
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
+                            ${isCorrect ? '✓ Benar (+2)' : '✗ Salah (0)'}
+                        </span>
+                    </div>
+
+                    <div class="text-sm space-y-1">
+                        <p class="${isCorrect ? 'text-emerald-700' : 'text-red-600'} font-medium">
+                            Jawaban Anda: ${userAnsText}
+                        </p>
+                        ${!isCorrect ? `<p class="text-emerald-700 font-semibold">Jawaban Benar: ${correctAnsText}</p>` : ''}
+                    </div>
+
+                    <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs text-slate-600 leading-relaxed">
+                        <b class="text-indigo-900">💡 Pembahasan / Rationale:</b> ${q.discussion}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // INIT ON LOAD
+        window.onload = () => {
+            generateClassOptions();
+        };
+    </script>
+</body>
+</html>
+```eof
+
+### Catatan Penggunaan Aplikasi Latihan UTS:
+1. **Cara Menggunakan**: Simpan kode di atas dengan nama file `uts_kwu_bkm.html`, lalu buka langsung file tersebut menggunakan browser (Google Chrome, Microsoft Edge, Mozilla Firefox, atau browser HP).
+2. **Fleksibel & Mandiri**: Aplikasi ini beroperasi secara *full client-side* (tanpa butuh server/database backend), sehingga dapat digunakan secara offline maupun online oleh seluruh siswa SMK Bina Karya Mandiri.
